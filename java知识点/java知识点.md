@@ -775,3 +775,238 @@ https://www.cnblogs.com/qianqiannian/p/7010909.html
 https://blog.csdn.net/weixin_42092787/article/details/108048850
 
 NEW、RUNNABLE、BLOCKED、WAITING、TIME_WAITING、TERMINATED;
+
+
+
+### 29、克隆
+
+https://www.cnblogs.com/Qian123/p/5710533.html
+
+“=” 号的复制对于基本数据类型是值得复制，但对于引用类型只是地址的复制，两个变量具有相同的地址，指向同一个对象。克隆可以创建两个一样内容的不同对象，而且clone() 方法是一个native方法，效率高。
+
+要实现克隆，类必须要实现Cloneable接口，否则会抛出**CloneNotSupportedException**。并重写clone()方法。
+
+```java
+class Student implements Cloneable{
+    private int id;
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    @Override
+    protected Student clone() throws CloneNotSupportedException {
+        return (Student) super.clone();
+    }
+}
+
+public class Demo {
+    public static void main(String[] args) throws Exception {
+        Student s1 = new Student();
+        s1.setId(100);
+        Student s2 = s1;
+        System.out.println(s2 == s1); // true
+        Student s3 = s1.clone();
+        System.out.println(s3 == s1); // false
+    }
+}
+```
+
+克隆分为**浅克隆(ShallowClone)**和**深克隆(DeepClone)**，主要区别是，对引用类型的成员变量的复制是否也是克隆。
+
+下面实现浅克隆。
+
+```java
+class Student implements Cloneable{
+    private int id;
+    private Address address;
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    @Override
+    protected Student clone() throws CloneNotSupportedException {
+        return (Student) super.clone();
+    }
+}
+class Address{
+    private String add;
+
+    public String getAdd() {
+        return add;
+    }
+
+    public void setAdd(String add) {
+        this.add = add;
+    }
+}
+
+public class Demo {
+    public static void main(String[] args) throws Exception {
+        Address address = new Address();
+        address.setAdd("hunan");
+        Student s1 = new Student();
+        s1.setId(100);
+        s1.setAddress(address);
+
+        Student s2 = s1.clone();
+        System.out.println("s1的内存地址 = "+s1+"，s1的address的内存地址 = "+s1.getAddress());
+        System.out.println("s2的内存地址 = "+s2+"，s2的address的内存地址 = "+s2.getAddress());
+    }
+}
+```
+
+输出，可以明显的知道两个不同的对象，的引用成员变量是同一个对象。
+
+![image-20211002182452605](img/image-20211002182452605.png)
+
+要改变这一情况，需要对Address也进行克隆。下面为深克隆。
+
+```java
+class Student implements Cloneable {
+    private int id;
+    private Address address;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    @Override
+    protected Student clone() throws CloneNotSupportedException {
+        Student student = (Student) super.clone(); // 浅克隆
+        student.address = address.clone(); //深克隆
+        return student;
+    }
+}
+
+class Address implements Cloneable {
+    private String add;
+
+    public String getAdd() {
+        return add;
+    }
+
+    public void setAdd(String add) {
+        this.add = add;
+    }
+
+    @Override
+    protected Address clone() throws CloneNotSupportedException {
+        return (Address) super.clone();
+    }
+}
+
+public class Demo {
+    public static void main(String[] args) throws Exception {
+        Address address = new Address();
+        address.setAdd("hunan");
+        Student s1 = new Student();
+        s1.setId(100);
+        s1.setAddress(address);
+
+        Student s2 = s1.clone();
+        System.out.println("s1的内存地址 = "+s1+"，s1的address的内存地址 = "+s1.getAddress());
+        System.out.println("s2的内存地址 = "+s2+"，s2的address的内存地址 = "+s2.getAddress());
+    }
+}
+```
+
+输出，![image-20211002183213668](img/image-20211002183213668.png)
+
+可以看出，当对象里面有很多引用类型需要进行深克隆时，会变得很麻烦。这时可以使用序列化和反序列化来进行深克隆。
+
+```java
+class Student implements Serializable {
+    private int id;
+    private Address address;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Student myclone(){
+        Student student = null;
+        try {
+            // 将该对象序列化成流,因为写在流里的是对象的一个拷贝，而原对象仍然存在于JVM里面。
+            // 所以利用这个特性可以实现对象的深拷贝
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(this);
+            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            student = (Student) ois.readObject();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return student;
+    }
+
+}
+
+class Address implements Serializable {
+    private String add;
+
+    public String getAdd() {
+        return add;
+    }
+
+    public void setAdd(String add) {
+        this.add = add;
+    }
+}
+
+public class Demo {
+    public static void main(String[] args) throws Exception {
+        Address address = new Address();
+        address.setAdd("hunan");
+        Student s1 = new Student();
+        s1.setId(100);
+        s1.setAddress(address);
+
+        Student s2 = s1.myclone();
+        System.out.println("s1的内存地址 = "+s1+"，s1的address的内存地址 = "+s1.getAddress());
+        System.out.println("s2的内存地址 = "+s2+"，s2的address的内存地址 = "+s2.getAddress());
+    }
+}
+```
+
+输出![image-20211002184552268](img/image-20211002184552268.png)
