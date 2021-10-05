@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--实现FactoryBean接口-->
+    <bean id="conn" class="com.aizhong.factory.ConnectionFactoryBean">
+        <property name="driveName" value="com.mysql.jdbc.Driver"/>
+        <property name="URL" value="jdbc:mysql://localhost:3306/web?useSSL=false"/>
+        <property name="user" value="root"/>
+        <property name="password" value="root"/>
+    </bean>
+
+    <!--实例工厂-->
+    <!--先创建出工厂的实例-->
+    <bean id="connFactory" class="com.aizhong.factory.ConnectionFactory"/>
+    <!-- 通过工厂实例里的方法创建复杂对象 -->
+    <bean id="conn1" factory-bean="connFactory" factory-method="getConnection"/>
+
+    <!--静态工厂-->
+    <bean id="conn2" class="com.aizhong.factory.StaticFactoryBean" factory-method="getConnection"/>
+
+
+    <bean id="user" scope="prototype" class="com.aizhong.entity.User">
+        <property name="name" value="ai"/>
+        <property name="age" value="20"/>
+    </bean>
+
+    <bean id="user1" class="com.aizhong.entity.User">
+        <constructor-arg value="Aizz" type="java.lang.String"/>
+        <constructor-arg value="20" type="java.lang.Integer"/>
+    </bean>
+    <bean id="person" class="com.aizhong.entity.Person">
+        <property name="name">
+            <value>Aizz</value>
+        </property>
+        <property name="age" value="20"/>
+        <property name="hobbys">
+            <list>
+                <value>game</value>
+                <value>pingpong</value>
+            </list>
+        </property>
+        <property name="emails">
+            <list>
+                <value>123@qq.com</value>
+                <value>456@qq.com</value>
+            </list>
+        </property>
+        <property name="qqs">
+            <set>
+                <value>123</value>
+                <value>456</value>
+            </set>
+        </property>
+        <property name="addrs">
+            <map>
+                <entry>
+                    <key><value>NO.1</value></key>
+                    <value>hunan</value>
+                </entry>
+                <entry key="NO.2" value="Hangzhou"/>
+            </map>
+        </property>
+        <property name="p">
+            <props>
+                <prop key="key1">value1</prop>
+                <prop key="key2">value2</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="student" class="com.aizhong.entity.Student">
+        <property name="name" value="Aizz" />
+        <property name="teacher">
+            <bean class="com.aizhong.entity.Teacher"/>
+        </property>
+    </bean>
+    <!--<bean id="student" class="com.aizhong.entity.Student">
+        <property name="name" value="Aizz" />
+        <property name="teacher" ref="teacher"/>
+    </bean>
+    <bean id="teacher" class="com.aizhong.entity.Teacher"/>-->
+
+</beans>
