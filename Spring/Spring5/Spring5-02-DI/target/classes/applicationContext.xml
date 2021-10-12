@@ -1,14 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
 
+    <!--创建 MyDateConverter 对象-->
+    <bean id="myDateConverter" class="com.aizhong.common.MyDateConverter">
+        <property name="pattern" value="yyyy-MM-dd"/>
+    </bean>
+    <!--用于注册类型转换器-->
+    <bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <set>
+                <ref bean="myDateConverter"/>
+            </set>
+        </property>
+    </bean>
+
+
+
+
+    <bean id="teacher" class="com.aizhong.entity.Teacher"/>
+
+    <context:property-placeholder location="classpath:/db.properties"/>
     <!--实现FactoryBean接口-->
     <bean id="conn" class="com.aizhong.factory.ConnectionFactoryBean">
-        <property name="driveName" value="com.mysql.jdbc.Driver"/>
-        <property name="URL" value="jdbc:mysql://localhost:3306/web?useSSL=false"/>
-        <property name="user" value="root"/>
-        <property name="password" value="root"/>
+        <property name="driveName" value="${jdbc.driverClassName}"/>
+        <property name="URL" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
     </bean>
 
     <!--实例工厂-->
@@ -68,6 +89,7 @@
                 <prop key="key2">value2</prop>
             </props>
         </property>
+        <property name="birthday" value="2021-10-6"/>
     </bean>
 
     <bean id="student" class="com.aizhong.entity.Student">

@@ -10,6 +10,15 @@ public class Person {
     private Set<String> qqs;
     private Map<String, String> addrs;
     private Properties p;
+    private Date birthday;
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
 
     public String getName() {
         return name;

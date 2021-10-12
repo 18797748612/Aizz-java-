@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="Spring5-02-DI" />
         <module name="Spring5-01" />
+        <module name="Spring5-03-AOP" />
       </profile>
     </annotationProcessing>
   </component>

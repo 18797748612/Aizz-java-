@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean id="proxyBeanPostProcessor" class="com.aizhong.proxy.ProxyBeanPostProcessor"/>
+
+    <bean id="userService" class="com.aizhong.service.impl.UserServiceImpl"/>
+    <!--额外功能类-->
+    <bean id="before" class="com.aizhong.common.Around"/>
+
+    <aop:config proxy-target-class="false">
+        <!--定义切点-->
+        <!--切入点:额外功能的加入-->
+        <!--目的: 由程序员根据自己的需要，决定额外功能加入给哪个原始方法(register、login)-->
+        <!--简单测试：所有方法都作为切点-->
+        <aop:pointcut id="pc" expression="@annotation(com.aizhong.annotation.Log)"/>
+        <!--组装: 所有的方法 都加入before的额外功能-->
+        <aop:advisor advice-ref="before" pointcut-ref="pc"/>
+    </aop:config>
+</beans>

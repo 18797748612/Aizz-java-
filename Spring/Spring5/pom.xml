@@ -11,6 +11,7 @@
     <modules>
         <module>Spring5-01</module>
         <module>Spring5-02-DI</module>
+        <module>Spring5-03-AOP</module>
     </modules>
 
     <properties>
@@ -44,6 +45,21 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.47</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>5.3.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.8.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.6</version>
         </dependency>
     </dependencies>
 

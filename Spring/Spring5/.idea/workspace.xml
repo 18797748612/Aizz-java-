@@ -5,7 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0a81e451-31fa-4ba6-a87f-568d88ef69cf" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Spring5-02-DI/src/test/java/AppTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Spring5-02-DI/src/main/resources/applicationContext1.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Spring5.md" beforeDir="false" afterPath="$PROJECT_DIR$/../Spring5.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spring5-02-DI/src/main/java/com/aizhong/entity/Person.java" beforeDir="false" afterPath="$PROJECT_DIR$/Spring5-02-DI/src/main/java/com/aizhong/entity/Person.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spring5-02-DI/src/main/java/com/aizhong/entity/Teacher.java" beforeDir="false" afterPath="$PROJECT_DIR$/Spring5-02-DI/src/main/java/com/aizhong/entity/Teacher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spring5-02-DI/src/main/resources/applicationContext.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Spring5-02-DI/src/main/resources/applicationContext.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spring5-02-DI/src/test/java/AppTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Spring5-02-DI/src/test/java/AppTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spring5-02-DI/target/classes/applicationContext.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Spring5-02-DI/target/classes/applicationContext.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spring5-02-DI/target/classes/com/aizhong/entity/Person.class" beforeDir="false" afterPath="$PROJECT_DIR$/Spring5-02-DI/target/classes/com/aizhong/entity/Person.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spring5-02-DI/target/classes/com/aizhong/entity/Teacher.class" beforeDir="false" afterPath="$PROJECT_DIR$/Spring5-02-DI/target/classes/com/aizhong/entity/Teacher.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spring5-02-DI/target/test-classes/AppTest.class" beforeDir="false" afterPath="$PROJECT_DIR$/Spring5-02-DI/target/test-classes/AppTest.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,6 +27,7 @@
       <list>
         <option value="Interface" />
         <option value="spring-beans.schema" />
+        <option value="AnnotationType" />
         <option value="Class" />
       </list>
     </option>
@@ -56,7 +67,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/Spring5-02-DI/src/main/resources" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/Spring5-03-AOP/src/main/resources" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -74,11 +85,38 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="H:\Typora\Typora文档\Spring\Spring5\Spring5-03-AOP\src\main\resources" />
       <recent name="H:\Typora\Typora文档\Spring\Spring5\Spring5-02-DI\src\main\resources" />
       <recent name="H:\Typora\Typora文档\Spring\Spring5\Spring5-02-DI\src\main\java" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.AppTest.test3">
+  <component name="RunManager" selected="JUnit.AppTest.test4">
+    <configuration name="TestCGlibProxy" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.aizhong.proxy.TestCGlibProxy" />
+      <module name="Spring5-03-AOP" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.aizhong.proxy.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestJDKProxy" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.aizhong.proxy.TestJDKProxy" />
+      <module name="Spring5-03-AOP" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.aizhong.proxy.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
@@ -92,28 +130,8 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="AppTest.test (1)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Spring5-02-DI" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="AppTest" />
-      <option name="METHOD_NAME" value="test" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="AppTest.test2 (1)" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Spring5-02-DI" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="AppTest" />
-      <option name="METHOD_NAME" value="test2" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="AppTest.test2" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Spring5-01" />
+      <module name="Spring5-03-AOP" />
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="AppTest" />
       <option name="METHOD_NAME" value="test2" />
@@ -123,7 +141,7 @@
       </method>
     </configuration>
     <configuration name="AppTest.test3" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Spring5-02-DI" />
+      <module name="Spring5-03-AOP" />
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="AppTest" />
       <option name="METHOD_NAME" value="test3" />
@@ -133,7 +151,7 @@
       </method>
     </configuration>
     <configuration name="AppTest.test4" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Spring5-02-DI" />
+      <module name="Spring5-03-AOP" />
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="AppTest" />
       <option name="METHOD_NAME" value="test4" />
@@ -144,11 +162,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.AppTest.test3" />
         <item itemvalue="JUnit.AppTest.test4" />
-        <item itemvalue="JUnit.AppTest.test (1)" />
-        <item itemvalue="JUnit.AppTest.test2 (1)" />
+        <item itemvalue="JUnit.AppTest.test3" />
         <item itemvalue="JUnit.AppTest.test2" />
+        <item itemvalue="Application.TestCGlibProxy" />
+        <item itemvalue="Application.TestJDKProxy" />
       </list>
     </recent_temporary>
   </component>
@@ -168,6 +186,9 @@
       <workItem from="1633336205407" duration="7828000" />
       <workItem from="1633352299709" duration="1844000" />
       <workItem from="1633416002600" duration="10581000" />
+      <workItem from="1633489570551" duration="6928000" />
+      <workItem from="1633832257548" duration="13488000" />
+      <workItem from="1634008714935" duration="4530000" />
     </task>
     <servers />
   </component>
@@ -185,5 +206,16 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/Spring5-03-AOP/src/main/java/com/aizhong/common/Before.java</url>
+          <line>16</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

@@ -847,45 +847,970 @@ Struts2 - Action
 
 
 
+# 对象的生命周期
+
+-   什么是对象的生命周期？
+
+一个对象有创建、存活、消亡的一个过程。
+
+-   生命周期的三个阶段
+
+创建阶段——>初始化阶段——>销毁阶段。
 
 
 
+## 1、创建阶段
+
+-   Spring工厂何时创建对象
+
+```markdown
+1. scope="prototype"：Spring 工厂在获取对象 getBean() 的同时，创建对象。
+2. scope="singleton"：Spring 工厂（IoC 容器）创建的同时，创建对象。通过配置 <bean lazy-init="true"/> 懒加载，也可以实现工厂获取对象的同时，创建对象。
+```
 
 
 
+## 2、初始化阶段
+
+-   什么时候执行初始化
+
+Spring工厂在创建对象、完成注入后，会调用该对象的初始化方法，完成初始化操作。
 
 
 
+### 2.1	 实现InitializingBean接口
+
+Spring工厂会自己调佣。
+
+```java
+public class Teacher implements InitializingBean {
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("Teacher.afterPropertiesSet");
+    }
+}
+```
 
 
 
+### 2.2	提供普通初始化方法
+
+```java
+public class Teacher {
+    public void myInitMethod() {
+        System.out.println("Teacher.myInitMethod");
+    }
+}
+```
+
+```xml
+<bean id="teacher" class="com.aizhong.entity.Teacher" init-method="myInitMethod" />
+```
 
 
 
+### 2.3	初始化细节
+
+```markdown
+1. 执行顺序：先执行 InitializingBean，再执行普通初始化方法。
+2. 初始化发生在注入之后
+3. 资源的初始化：数据库、IO、网络...
+```
 
 
 
+## 3、销毁阶段
+
+-   Spring 什么时候销毁所创建的对象？
+
+工厂对象调用**close()**方法（AbstractApplicationContext的方法）
 
 
 
+### 3.1	实现DisposableBean接口
+
+```java
+public class Teacher implements DisposableBean {
+    @Override
+    public void destroy() throws Exception {
+        System.out.println("Teacher.destroy");
+    }
+}
+```
 
 
 
+### 3.2	提供普通方法
+
+```java
+public class Teacher implements DisposableBean {
+    public void myDestroy() {
+        System.out.println("Teacher.myDestroy");
+    }
+}
+```
+
+```xml
+<bean id="teacher" class="com.aizhong.entity.Teacher" destroy-method="myDestroy"/>
+```
 
 
 
+### 3.3	销毁细节
+
+```markdown
+1. 销毁方法发生在工厂close()后
+2. 销毁方法只适用于scope="singleton"的对象，初始化操作都适用
+3. 顺序：先接口方法，后普通方法
+4. 销毁的资源：io.close()、connection.close()...
+```
 
 
 
+## 4、总结
+
+```java
+public class Teacher implements InitializingBean, DisposableBean {
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("Teacher.afterPropertiesSet");
+    }
+
+    public void myInitMethod() {
+        System.out.println("Teacher.myInitMethod");
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        System.out.println("Teacher.destroy");
+    }
+
+    public void myDestroy() {
+        System.out.println("Teacher.myDestroy");
+    }
+}
+```
+
+```xml
+<bean id="teacher" scope="singleton|prototype" class="com.aizhong.entity.Teacher" init-method="myInitMethod" destroy-method="myDestroy"/>
+```
+
+![](img/创建初始化销毁.png)
 
 
 
+# 配置文件参数化
+
+将配置文件中需要经常修改的数据单独提出来，放在一个小一点、辨识度高的配置文件中( .properties)，利于后续Spring配置文件的**维护**。例如，将数据库连接的信息提取出来。
+
+```properties
+#----- db.properties
+jdbc.driverClassName = com.mysql.jdbc.Driver
+jdbc.url = jdbc:mysql://localhost:3306/web?useSSL=false
+jdbc.username = root
+jdbc.password = root
+```
+
+在配置文件中引入命名空间
+
+```xml
+xmlns:context="http://www.springframework.org/schema/context"
+```
+
+添加db.properties的引用配置，并修改connectionFactory工厂的注入信息
+
+```xml
+<context:property-placeholder location="classpath:/db.properties"/>
+<!--实现FactoryBean接口-->
+<bean id="conn" class="com.aizhong.factory.ConnectionFactoryBean">
+    <property name="driveName" value="${jdbc.driverClassName}"/>
+    <property name="URL" value="${jdbc.url}"/>
+    <property name="user" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+</bean>
+```
 
 
 
+# 自定义类型转换器
+
+## 1、类型转换器
+
+Spring 通过 类型转换器 把 配置文件 中 字符串 类型的数据，转换成了对象中成员变量对应类型的数据，进而完成了注入。
+
+![](img/类型转换器.png)
 
 
 
+## 2、自定义类型转换器
+
+当 Spring 内部没有提供特定类型转换器时，而程序员在应用的过程中还需要使用，那么就需要程序员自己定义类型转换器。如Date类。
+
+-   实现Converter接口
+
+```java
+public class MyDateConverter implements Converter<String, Date> {
+    private String pattern;
+
+    @Override
+    public Date convert(String source) {
+        Date date = null;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+            date = sdf.parse(source);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
+    }
+
+    public String getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
+    }
+}
+```
+
+-   在配置文件中配置，注意**ConversionServiceFactoryBean**类的id必须是**conversionService**
+
+```xml
+<!--创建 MyDateConverter 对象-->
+<bean id="myDateConverter" class="com.aizhong.converter.MyDateConverter">
+    <property name="pattern" value="yyyy-MM-dd"/>
+</bean>
+<!--用于注册类型转换器，可以有多个-->
+<bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+    <property name="converters">
+        <set>
+            <ref bean="myDateConverter"/>
+        </set>
+    </property>
+</bean>
+```
 
 
 
+# 后置处理bean
+
+BeanPostProcessor 作用：对 Spring 工厂所创建的对象，进行再加工。（AOP 的底层实现）
+
+
+
+## 1、原理
+
+![](img/后置处理bean.png)
+
+**作用于初始化方法之前和之后。**
+
+
+
+## 2、开发步骤
+
+-   实现BeanPostProcessor接口
+
+```java
+public class MyBeanPostProcessor implements BeanPostProcessor {
+    // 两个方法都有默认实现
+
+    // Spring 创建完对象，并进行注入后，可以运行 Before ⽅法进行加工；
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        System.out.println("MyBeanPostProcessor.postProcessBeforeInitialization");
+        return bean;
+    }
+
+
+    // Spring 执行完对象的初始化操作后，可以运行 After ⽅法进行加工；
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        System.out.println("MyBeanPostProcessor.postProcessAfterInitialization");
+        return bean;
+    }
+}
+```
+
+-   配置配置文件
+
+```xml
+<!--后置处理bean-->
+<bean id="myBeanPostProcessor" class="com.aizhong.common.MyBeanPostProcessor"/>
+```
+
+
+
+## 3、细节
+
+BeanPostProcessor 会对 Spring 工厂创建的**所有对象**进行加工。
+
+
+
+# 静态代理设计模式
+
+## 1、为什么需要代理设计模式？
+
+对于JavaEE分层开发中，Service层中包含了
+
+-   核心代码（代码量较多）：业务运算、DAO调用。。。
+-   额外功能（附加功能，不属于业务，可有可无，代码量小）：事务、日志、性能。。。
+
+额外功能写在Service层不利于维护。但
+
+-   Service 层的调用者的角度（Controller)：需要在 Service 层书写额外功能。
+-   软件设计者：Service 层不需要额外功能。
+
+
+
+==房屋出租的经典代理案例。==
+
+![](img/中介图.png)
+
+
+
+## 2、代理设计模式
+
+概念：通过代理类，为原始类（目标类）增加额外的功能
+
+好处：利于原始类（目标类）的维护
+
+
+
+### 2.1、代理开发的核心要素
+
+**代理类 = 目标类(原始类) + 额外功能 + 原始类(目标类)实现相同的接口**
+
+```java
+// 接口
+public interface UserService {
+	m1
+	m2
+}
+// 原始类
+public UserServiceImpl implements UserService {
+	// 原始方法
+    m1 ---> 业务运算、调用DAO
+	m2 
+}
+----------------------------------------------------
+// 代理类：要实现目标类相同的接口
+public UserServiceProxy implements UserService {
+    // 代理方法
+	m1
+	m2
+}
+```
+
+编码实现
+
+```java
+public interface UserService {
+    void register(User user);
+    boolean login(String name, String password);
+}
+```
+
+```java
+public class UserServiceImpl implements UserService {
+    @Override
+    public void register(User user) {
+        System.out.println("user = " + user);
+    }
+
+    @Override
+    public boolean login(String name, String password) {
+        System.out.println("name = " + name + ", password = " + password);
+        return true;
+    }
+}
+```
+
+```java
+public class UserServiceProxy implements UserService {
+    private UserService userService = new UserServiceImpl();
+    @Override
+    public void register(User user) {
+        System.out.println("---------------log-------------");
+        userService.register(user);
+    }
+
+    @Override
+    public boolean login(String name, String password) {
+        System.out.println("---------------log-------------");
+        return userService.login(name,password);
+    }
+}
+```
+
+
+
+### 2.2、静态代理存在的问题
+
+-   类的数量翻倍，每一个需要代理的**原始类**都需要一个编写**代理类**
+-   额外功能维护性差
+
+
+
+# Spring的动态代理
+
+概念：通过代理类为原始类（目标类）增加额外功能
+
+好处：利于原始类（目标类）的维护
+
+
+
+## 1、搭建环境
+
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-aop</artifactId>
+    <version>5.3.9</version>
+</dependency>
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjrt</artifactId>
+    <version>1.8.9</version>
+</dependency>
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjweaver</artifactId>
+    <version>1.9.6</version>
+</dependency>
+```
+
+
+
+## 2、开发步骤
+
+2.1	创建原始对象
+
+```java
+public interface UserService {
+    void register(User user);
+    boolean login(String name, String password);
+}
+```
+
+```java
+public class UserServiceImpl implements UserService {
+    @Override
+    public void register(User user) {
+        System.out.println("user = " + user);
+    }
+
+    @Override
+    public boolean login(String name, String password) {
+        System.out.println("name = " + name + ", password = " + password);
+        return true;
+    }
+}
+```
+
+2.2	实现额外功能 MethodBeforeAdvice 接口
+
+```java
+public class Before implements MethodBeforeAdvice {
+    /**
+     * 作用: 把需要运行在原始方法执行之前运行的额外功能, 书写在 before 方法中
+     */
+    @Override
+    public void before(Method method, Object[] args, Object target) throws Throwable {
+        System.out.println("----------method before advice log----------");
+    }
+}
+```
+
+2.3	配置文件
+
+```xml
+<!-- 1、原始对象-->
+<bean id="userService" class="com.aizhong.service.impl.UserServiceImpl"/>
+<!-- 2、额外功能类-->
+<bean id="before" class="com.aizhong.common.Before"/>
+
+<aop:config>
+    <!-- 3、定义切点-->
+    <!--切入点:额外功能的加入-->
+    <!--目的: 由程序员根据自己的需要，决定额外功能加入给哪个原始方法(register、login)-->
+    <!--简单测试：所有方法都作为切点-->
+    <aop:pointcut id="pc" expression="execution(* * (..))"/>
+    <!-- 4、组装: 所有的方法 都加入before的额外功能-->
+    <aop:advisor advice-ref="before" pointcut-ref="pc"/>
+</aop:config>
+```
+
+2.4	调用
+
+-   目的：获得 Spring 工厂创建的动态代理对象，并进行调用
+
+-   注意：
+
+```markdown
+1.  Spring 的工厂通过原始对象的 id 值获得的是  代理对象
+2.  获得代理对象后，可以通过声明接口类型，进行对象的存储
+```
+
+```java
+@Test
+public void test1(){
+    ApplicationContext cpx = new ClassPathXmlApplicationContext("applicationContext.xml");
+    UserService userService = cpx.getBean("userService", UserService.class);
+    System.out.println("userService.getClass() = " + userService.getClass());// class com.sun.proxy.$Proxy6
+    userService.register(new User());
+    userService.login("Aizz","123");
+}
+```
+
+
+
+## 3、细节分析
+
+-   Spring 创建的动态代理类在哪里？
+
+```markdown
+1. Spring 框架在运行时，通过动态字节码技术，在 JVM 创建的，运行在 JVM 内部，等程序结束后，会和 JVM 一起消失。
+```
+
+-   什么是 **动态字节码技术**？
+
+```markdown
+1. 通过第三方动态字节码框架，在 JVM 中创建对应类的字节码，进而创建对象，当虚拟机结束，动态字节码跟着消失。
+```
+
+-   结论
+
+```markdown
+1. 动态代理不需要定义类文件，都是 JVM 运行过程中动态创建的，所以不会造成静态代理的缺点：类⽂件数量过多，影响项目管理的问题。
+2. 在额外功能不改变的前提下，创建其他目标类（原始类）的代理对象时，只需要指定原始（目标）对象即可。
+```
+
+
+
+![](img/动态生成字节码.png)
+
+
+
+## 4、额外功能
+
+### 4.1	 MethodBeforeAdvice分析
+
+接口作用：额外功能运行在原始方法执行之前，进行额外功能操作。
+
+```java
+public class Before implements MethodBeforeAdvice {
+    /**
+     * 作用: 把需要运行在原始方法执行之前运行的额外功能, 书写在 before 方法中
+     *
+     * Method: 额外功能所增加给的那个原始方法
+     * Object[]:  额外功能所增加给的那个原始方法的参数
+     * Object: 额外功能所增加给的那个原始对象
+     * 三个参数都不常用
+     */
+    @Override
+    public void before(Method method, Object[] args, Object target) throws Throwable {
+        System.out.println("----------method before advice log----------");
+    }
+}
+```
+
+
+
+### 4.2	MethodInterceptor分析
+
+```java
+public class Around implements MethodInterceptor {
+    @Override
+    public Object invoke(MethodInvocation invocation) throws Throwable {
+        // 执行原方法前
+        System.out.println("Around.invoke 执行原方法前");
+        Object proceed = null;
+        try {
+            // 执行原方法
+            proceed = invocation.proceed();
+        } catch(Exception e) {
+            System.out.println("Around.invoke 执行异常处理");
+            e.printStackTrace();
+        }
+
+        // 执行原方法后
+        System.out.println("Around.invoke 执行原方法后");
+
+        // 影响返回值
+        return proceed;
+    }
+}
+```
+
+
+
+## 5、切入点详解
+
+切入点决定额外功能加入位置（方法）
+
+```xml
+<!--execution(* * (..)) 匹配了所有方法-->
+<aop:pointcut id="pc" expression="execution(* * (..))"/>
+```
+
+-   `execution()`：**切入点函数**
+-   `* *(..)`：**切入点表达式**
+
+
+
+### 5.1	切入点表达式
+
+```markdown
+* * (..)    --> 所有方法
+
+*  --->  修饰符 返回值
+*  --->  方法名（包全限定名+方法名）
+() --->  参数表
+.. --->  对于参数没有要求 (参数有没有，参数有⼏个都行，参数是什么类型的都行)
+```
+
+
+
+### 5.2	切入点函数
+
+函数之间可进行 **and** 和 **or** 运算，但同一 and 算式中不能有相同的函数。
+
+-   exectuion
+
+`execution` 是最为重要的切入点函数，功能最全；可以执行执行 **方法切入点表达式**、**类切入点表达式**、**包切入点表达式**；
+
+弊端：`execution` 执⾏切入点表达式 ，书写麻烦
+
+
+
+-   args
+
+主要用于 **函数(方法) 参数的匹配**
+
+```xml
+# 切入点：方法参数必须得是 2 个字符串类型的参数
+
+# 使用 execution
+<aop:pointcut id="pc" expression="execution(* *(String, String))"/>
+# 使用 args
+<aop:pointcut id="pc" expression="args(String, String)"/>
+```
+
+
+
+-   within
+
+主要用于进行 **类、包切入点表达式** 的匹配
+
+```xml
+切入点: UserServiceImpl 这个类
+
+# 使用 execution
+<aop:pointcut id="pc" expression="expression(* *..UserServiceImpl.*(..))"/>
+
+# 使用 within
+<aop:pointcut id="pc" expression="within(*..UserServiceImpl)"/>
+```
+
+
+
+-   @annotation
+
+为具有特殊注解的 **方法** 加入额外功能
+
+自定义了一个注解：`Log`
+
+```java
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Log {
+}
+```
+
+配置文件
+
+```xml
+<aop:pointcut id="pc" expression="@annotation(com.aizhong.annotation.Log)"/>
+```
+
+
+
+# AOP编程
+
+## 1、概念
+
+```markdown
+1. POP (Producer Oriented Programing）
+	面向过程（方法、函数）编程 —— C
+	以 过程 为基本单位的程序开发，通过过程间的彼此协同，相互调用，完成程序的构建。
+
+2. OOP (Object Oritened Programing)
+	面向对象编程 —— Java
+	以 对象 为基本单位的程序开发，通过对象间的彼此协同，相互调用，完成程序的构建。
+
+3. AOP (Aspect Oriented Programing)
+	面向切面编程 = Spring动态代理开发
+	以 切面 为基本单位的程序开发，通过切面间的彼此协同，相互调用，完成程序的构建。
+	
+	本质：通过代理类为原始类增加额外功能
+	好处：利于原始类的维护
+	注意：AOP 编程不可能取代 OOP，AOP 是 OOP 编程的补充
+```
+
+
+
+## 2、AOP开发步骤
+
+1.  原始对象
+2.  额外功能 (`MethodInterceptor`)
+3.  切入点
+4.  组装切面 (额外功能+切入点)
+
+**切面 = 切入点 + 额外功能**
+
+
+
+## 3、AOP底层实现原理
+
+-   AOP如何创建代理对象
+
+```markdown
+通过动态字节码
+```
+
+-   Spring工厂如何加工创建代理对象
+
+```markdown
+通过原始对象的 id 值，获得的是代理对象
+```
+
+
+
+### 3.1	JDK的动态代理
+
+`Proxy.newPorxyInstance` 方法参数详解
+
+![](img/JDK的动态代理1.png)
+
+![](img/JDK的动态代理2.png)
+
+
+
+```java
+/**
+ * 1. 借⽤类加载器  TestJDKProxy 或 UserServiceImpl 都可以
+ * 2. JDK8.x 前必须加 final
+ * final UserService userService = new UserServiceImpl();
+ */
+public class TestJDKProxy {
+
+    public static void main(String[] args) {
+        // 1. 创建原始对象
+        UserService userService = new UserServiceImpl();
+
+        // 2. JDK 动态代理
+        InvocationHandler handler = new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                System.out.println("---- proxy log ----");
+                // 原始方法运行,反射
+                Object ret = method.invoke(userService, args);
+                return ret;
+            }
+        };
+
+        // 创建代理对象
+        UserService proxyInstance = (UserService) Proxy.newProxyInstance(
+                Thread.currentThread().getClass().getClassLoader(),
+                userService.getClass().getInterfaces(),
+                handler);
+
+        proxyInstance.register(new User());
+
+        proxyInstance.login("Aizz", "123");
+    }
+
+}
+```
+
+
+
+### 3.2	CGlib的动态代理
+
+CGlib 创建动态代理的原理：通过**父子继承关系**创建代理对象，原始类作为父类，代理类作为子类，这样既可以保证 2 者方法⼀致，同时在代理类中可以提供新的实现（额外功能+原始方法）
+
+![](img/CGlib.png)
+
+```java
+public class TestCGlibProxy {
+    public static void main(String[] args) {
+        // 1. 创建原始对象
+        UserService userService = new UserServiceImpl();
+
+        /*
+         2. 通过 cglib 方式创建动态代理对象
+         对比 jdk 动态代理 ---> Proxy.newProxyInstance(classLoader, interface, invocationHandler);
+
+         Enhancer.setClassLoader()
+         Enhancer.setSuperClass()
+         Enhancer.setCallBack() ---> MethodInterceptor(cglib)
+         Enhancer.createProxy() ---> 创建代理对象
+         */
+        Enhancer enhancer = new Enhancer();
+
+        enhancer.setClassLoader(Thread.currentThread().getClass().getClassLoader());
+        enhancer.setSuperclass(userService.getClass());
+
+        // 额外方法
+        MethodInterceptor interceptor = new MethodInterceptor() {
+            @Override
+            public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+                System.out.println("--- cglib log ----");
+                Object ret = method.invoke(userService, args); // 执行原始方法
+                return ret;
+            }
+        };
+
+        enhancer.setCallback(interceptor);
+        UserService userServiceProxy = (UserService) enhancer.create();
+        userServiceProxy.login("Aizz", "123456");
+        userServiceProxy.register(new User());
+    }
+}
+```
+
+
+
+### 3.3	总结
+
+1.  JDK 动态代理
+    `Proxy.newProxyInstance`：通过接口创建代理的实现类
+2.  Cglib 动态代理
+    `new Enhancer()`：通过继承父类创建的代理类
+
+
+
+## 4、Spring工厂如何加工原始对象
+
+主要通过 `BeanPostProcessor` 将原始对象加工为代理对象
+
+![](img/通过BeanPostProcessor创建代理对象.png)
+
+```java
+public class ProxyBeanPostProcessor implements BeanPostProcessor {
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+//        InvocationHandler handler = new InvocationHandler() {
+//            @Override
+//            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+//                System.out.println("--- beanPostProcessor log ---");
+//                Object ret = method.invoke(bean, args);
+//                return ret;
+//            }
+//        };
+        return Proxy.newProxyInstance(
+                ProxyBeanPostProcessor.class.getClassLoader(),
+                bean.getClass().getInterfaces(),
+                (Object proxy, Method method, Object[] args) -> {
+                    System.out.println("--- beanPostProcessor log ---");
+                    Object ret = method.invoke(bean, args);
+                    return ret;
+                });
+    }
+}
+```
+
+
+
+# 基于注解的AOP编程
+
+## 1、开发步骤
+
+1.   原始功能
+2.   额外功能
+3.   切入点
+4.   组装切面
+
+2、3、4全都放在一个类中
+
+```java
+@Aspect
+public class MyAspect {
+
+    @Around("execution(* *(..))")
+    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
+        System.out.println("---- aspect log ----");
+        Object ret = joinPoint.proceed();
+        return ret;
+    }
+}
+```
+
+配置文件
+
+```xml
+<bean id="userService" class="com.aizhong.service.impl.UserServiceImpl"/>
+<!--
+    切面:
+        1. 额外功能
+        2. 切入点啊
+        3. 组装切面
+-->
+<bean id="around" class="com.aizhong.common.MyAspect"/>
+<!--告知 Spring 基于注解进行 AOP 编程-->
+<aop:aspectj-autoproxy/>
+```
+
+
+
+## 2、切入点复用
+
+```java
+@Aspect
+public class MyAspect {
+
+    // 定义一个切入点，方法是 public void 方法名无要求
+    @Pointcut("@annotation(com.aizhong.annotation.Log)")
+    public void myPointcut(){}
+
+    @Around(value = "myPointcut()")
+    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
+        System.out.println("---- aspect log ----");
+        Object ret = joinPoint.proceed();
+        return ret;
+    }
+}
+```
+
+
+
+## 3、JDK 与 CGlib 的切换
+
+**默认情况 Spring AOP 编程 底层应用 JDK动态代理创建方式**。
+
+-   基于注解的 AOP 开发 中切换为 Cglib
+
+```xml
+<aop:aspectj-autoproxy proxy-target-class="true"/>
+```
+
+-   传统的 AOP 开发 中切换为 Cglib
+
+```xml
+<aop:config proxy-target-class="true">
+	...
+</aop:config>
+```
+
+
+
+## 4、AOP总结
+
+![](img/AOP总结.png)

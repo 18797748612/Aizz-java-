@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--1. 实现 BeanPostProcessor 进行加工-->
+    <!--2. 配置文件中对 BeanPostProcessor 进行配置-->
+    <bean id="proxyBeanPostProcessor" class="com.aizhong.proxy.ProxyBeanPostProcessor"/>
+    <bean id="userService" class="com.aizhong.service.impl.UserServiceImpl"/>
+</beans>

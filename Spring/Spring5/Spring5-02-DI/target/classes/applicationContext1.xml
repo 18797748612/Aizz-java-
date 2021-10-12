@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="teacher" scope="prototype" class="com.aizhong.entity.Teacher" init-method="myInitMethod" destroy-method="myDestroy"/>
+
+
+    <!--后置处理bean-->
+    <bean id="myBeanPostProcessor" class="com.aizhong.common.MyBeanPostProcessor"/>
+
+</beans>

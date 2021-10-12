@@ -1,5 +1,6 @@
 import com.aizhong.entity.Person;
 import com.aizhong.entity.Student;
+import com.aizhong.entity.Teacher;
 import com.aizhong.entity.User;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
@@ -15,7 +16,7 @@ public class AppTest {
     public void test1(){
         ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
         Person person = ctx.getBean("person", Person.class);
-        System.out.println("person = " + person);
+        System.out.println("person = " + person.getBirthday());
     }
     /**
     *  用于测试：用户自定义类型set注入
@@ -49,5 +50,29 @@ public class AppTest {
         ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
         Object conn = ctx.getBean("conn");
         System.out.println("conn = " + conn);
+    }
+    /**
+    *  用于测试：
+    */
+    @Test
+    public void test5(){
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
+        String[] beanDefinitionNames = ctx.getBeanDefinitionNames();
+        for (String beanDefinitionName : beanDefinitionNames) {
+            System.out.println("beanDefinitionName = " + beanDefinitionName);
+        }
+
+    }
+
+    /**
+    *  用于测试：初始化、销毁、后置处理bean
+    */
+    @Test
+    public void test6(){
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext1.xml");
+        Teacher teacher = ctx.getBean("teacher", Teacher.class);
+        Teacher teacher2 = ctx.getBean("teacher", Teacher.class);
+
+        ctx.close();
     }
 }
