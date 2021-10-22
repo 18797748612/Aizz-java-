@@ -56,30 +56,6 @@ public class AppTest {
     }
 
     /**
-     * 用于测试：
-     */
-    @Test
-    public void test4() {
-        Scanner sc = new Scanner(System.in);
-        String s = sc.nextLine();
-        int letter = 0;
-        int space = 0;
-        int digital = 0;
-        int other = 0;
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') {
-                letter++;
-            } else if (c == ' ') {
-                space++;
-            } else if (c >= '0' && c <= '9') {
-                digital++;
-            } else {
-                other++;
-            }
-        }
-    }
-    /**
     *  用于测试：
     */
     @Test

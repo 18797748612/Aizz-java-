@@ -7,17 +7,52 @@ sql
 数据查询语言（凡是带有select关键字的都是查询语句）
 				select...
 
+```markdown
+SELECT [ALL|DISTINCT|DISTINCTROW|TOP]
+FROM tableexpression
+WHERE
+GROUP BY
+HAVING
+ORDER BY
+```
+
+执行顺序
+
+```markdown
+1. 先从from字句一个表或多个表创建工作表
+2. 将where条件应用于1）的工作表，保留满足条件的行
+3. Group By 将2）的结果分成多个组
+4. Having 将条件应用于3）组合的条件过滤，只保留符合要求的组。
+4. Order By对结果进行排序。
+```
+
+
+
 ## 1.2、DML
 
 DML：
 				数据操作语言（凡是对表当中的数据进行增删改的都是DML）
 				insert 增
-				delete 删
-				update 改
+
+```markdown
+INSERT INTO table_name (列1, 列2,...) VALUES (值1, 值2,....)
+```
+
+​		delete 删
+
+```markdown
+DELETE FROM 表名称 WHERE 列名称 = 值
+```
+
+​		update 改
+
+```markdown
+UPDATE 表名称 SET 列名称 = 新值 WHERE 列名称 = 某值
+```
 
 ​			这个主要是操作表中的数据data。
 
-## 1.3、DDL
+## 1.3、DDL	
 
 DDL：
 				数据定义语言

@@ -1,0 +1,30 @@
+<!--
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Confi 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <typeAliases>
+        <typeAlias alias="user" type="com.aizhong.entity.User"/>
+        &lt;!&ndash;包下面的所以实体，默认为类名首字母小写&ndash;&gt;
+&lt;!&ndash;        <package name="com.aizhong.entity"/>&ndash;&gt;
+    </typeAliases>
+
+    <environments default="mysql">
+        <environment id="mysql">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/mybatis?useSSL=false"/>
+                <property name="username" value="root"/>
+                <property name="password" value="root"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <mappers>
+        <mapper resource="com/aizhong/dao/UserDaoMapper.xml"/>
+&lt;!&ndash;        <package name="com.aizhong.dao"/>&ndash;&gt;
+    </mappers>
+</configuration>
+-->

@@ -1814,3 +1814,761 @@ public class MyAspect {
 ## 4、AOP总结
 
 ![](img/AOP总结.png)
+
+
+
+
+
+# 注解
+
+## 1、注解的作用
+
+### 1.1	替换XML配置文件，简化配置。
+
+```java
+@Component
+public class User{
+
+} 
+```
+
+等效于
+
+```xml
+<bean id="user" class="...User"/>
+```
+
+
+
+### 1.2	替换接口，实现调用双方的契约性
+
+![image-20211021163745669](img/image-20211021163745669.png)
+
+![image-20211021163609465](img/image-20211021163609465.png)
+
+
+
+## 2、发展历程
+
+```markdown
+1. Spring 2.x： 开始支持注解编程 @Component、@Service、@Scope…
+目的：提供的这些注解只是为了某些 XML 的配置，作为 XML 开发的有益补充。
+2. Spring 3.x： @Configuration、@Bean…
+目的：彻底替换 XML，基于纯注解
+3. Spring 4.x： SpringBoot 提倡使用注解进行开发
+```
+
+
+
+# 基本注解
+
+配置文件：让Spring框架在设置包及其子包中扫描对应的注解，使其生效。
+
+```xml
+<context:component-scan base-package="com.aizhong.componentDemo"/>
+```
+
+
+
+## 1、对象创建的相关注解
+
+### 1.1	@Component
+
+作用：替换原有Spring配置文件中的 `<bean>` 标签
+
+-   `id` 属性：在 `@Component` 中提供了默认的设置方式：首单词首字母小写（ComponentTest—>componentTest）
+-   `class` 属性：通过反射获得的 `class` 的内容
+
+```java
+@Component
+public class ComponentTest {
+}
+```
+
+```java
+@Test
+public void test(){
+    ApplicationContext context = new ClassPathXmlApplicationContext("ApplicationContext.xml");
+    ComponentTest componentTest = (ComponentTest) context.getBean("componentTest");
+    System.out.println(componentTest);
+}
+```
+
+细节：
+
+```markdown
+1. 通过@Component("id") 来指定组件 id。
+2. 在applicationContext.xml配置文件中配置相同的id和class可以覆盖注解所创建的bean
+```
+
+
+
+### 1.2	衍生注解
+
+`@Repository`、`@Service`、`@Controller` 都是 `@Component` 的 **衍生注解**。
+
+作用：**更加准确的表达一个类型的作用**。
+
+```java
+@Repository
+public class UserDAO {}
+
+@Service
+public class UserService {}
+
+@Controller
+public class UserController {}
+```
+
+注意：Spring 整合 Mybatis 开发过程中，不使用 `@Repository`、`@Component`
+
+
+
+### 1.3	@Scope
+
+作用：控制对象创建次数
+
+注意：不添加 `@Scope`，Spring 提供默认值 `singleton`
+
+```java
+@Scope("singleton|prototype")
+```
+
+
+
+### 1.4	@Lazy
+
+作用：延迟创建单例对象
+
+注意：一旦使用 `@Lazy` 注解后，Spring 会在使用这个对象的时候，才创建这个对象。
+
+
+
+## 2、注入型注解
+
+### 2.1	用户自定义类型注入
+
+@Autowired
+
+```java
+@Repository
+public class UserDaoImpl implements UserDao{
+```
+
+```java
+@Service
+public class UserServiceImpl implements UserService{
+    @Autowired
+    private  UserDao userDao;
+
+    @Autowired
+    public UserServiceImpl(UserDao userDao) {
+        this.userDao = userDao;
+    }
+    @Autowired
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
+    }
+```
+
+注入方式
+
+```markdown
+1. @Autowired是基于类型注入
+	注入对象的类型，必须与目标成员变量类型相同或者是其子类（实现类）
+	
+2. @Autowired、@Qualifier 注解联合实现 基于bean的 id 进行注入
+```
+
+注入位置
+
+```markdown
+1. 作用于Filed上，不需要提供set以及construction方法，Spring通过反射直接对其赋值
+2. 作用于set方法上，提供set方法，注入时，set方法会被执行
+3. 作用于construction方法上，提供construction方法，对象创建时赋值
+
+方式1）虽然代码简洁但再次使用反射会降低效率；方式2）和3）的区别在于，构造方法在对象创建时就会执行，还能避免注入null（@Qualifier无法用在构造方法上）。Spring推荐使用构造方法注入
+```
+
+
+
+@Resource（java提供）
+
+-   JSR250 提供的 `@Resource(name="xxx")` **基于名字进行注入**
+    等价于 `@Autowired` 与 `@Qualifier` 联合实现的效果
+    注意：`@Resource` 注解如果名字没有配对成功，会继续 **按照类型进行注入**，无法使用在构造方法上
+
+
+
+### 2.2	基本类型
+
+方式1：@value + 配置文件
+
+```markdown
+1. 设置xxx.properties 
+   key1 = value1
+   key2 = value2
+2. Spring的工厂读取这个配置文件 
+   <context:property-placeholder location=""/>
+3. 代码中进行注入
+   属性 @Value("${key}")
+```
+
+方式2：@value + @PropertySource
+
+```markdown
+1. 设置xxx.properties 
+   key1 = value1
+   key2 = value2
+2. 在实体类上应用@PropertySource("classpath:/xx.properties")
+3. 代码
+   属性 @Value("${key}")
+```
+
+注意细节：
+
+```markdown
+1. @Value 注解不能应用在静态成员变量上，如果使用，获取的值为 null
+2. @Value 注解 + Properties 这种方式，不能注入集合类型
+	Spring 提供新的配置形式 YAML(YML) (更多的用于SpringBoot中)
+```
+
+
+
+## 3、包扫描
+
+```xml
+<context:component-scan base-package="com.aizhong"/>
+```
+
+这样配置会扫描当前包及其子包中的所有注解。
+
+
+
+### 3.1	排除方式：设置不需要扫描的注解
+
+```xml
+<context:component-scan base-package="com.aizhong">
+	 <context:exclude-filter type="" expression=""/>
+</context>
+```
+
+1.  type="xxx"
+
+```markdown
+assignable：排除特定的类型
+annotation：排除特定的注解
+aspectj：切入点表达式，比较常用
+包切入点： com.yusael.bean..*
+类切入点： *..User
+regex：正则表达式，不常用，与切入点类似
+custom：自定义排除策略，常用于框架底层开发（在 SpringBoot 源码中大量使用）
+```
+
+
+
+### 3.2	包含方式：设置扫描哪些注解
+
+```xml
+<context:component-scan base-package="com.aizhong" use-default-filters="false">
+   <context:include-filter type="" expression=""/>
+</context:component-scan>
+```
+
+与排除方式使用的区别：
+
+-   use-default-filters="false" 让 Spring 默认的注解扫描方式失效,
+
+    
+
+    type="xxx" 与排除方式完全一样，两种方式都可以叠加。
+    
+
+
+
+# 整合logback日志
+
+相关依赖
+
+```xml
+<!--logback日志-->
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>1.7.31</version>
+</dependency>
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>jcl-over-slf4j</artifactId>
+    <version>1.7.25</version>
+</dependency>
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-classic</artifactId>
+    <version>1.2.4</version>
+</dependency>
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-core</artifactId>
+    <version>1.2.4</version>
+</dependency>
+<dependency>
+    <groupId>org.logback-extensions</groupId>
+    <artifactId>logback-ext-spring</artifactId>
+    <version>0.1.5</version>
+</dependency>
+```
+
+配置文件：logback.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
+```
+
+
+
+# 高级注解
+
+## 1、@Configuration
+
+1	**配置 bean** 作用：由于替换xml配置文件，等效于 <Beans 标签
+
+```java
+@Configuration
+public class AppConfig {
+}
+```
+
+等效于一个空的ApplicationContext.xml配置文件
+
+
+
+2	使用@Configuration后，没有了xml配置文件，工厂需要换成AnnotationConfigApplicationContext。
+
+```markdown
+1. 指定配置bean的Class
+ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
+
+2. 指定配置bean所在的路径(某个包及其子包)
+ApplicationContext ctx = new AnnotationConfigApplicationContext("com.aizhong");
+```
+
+```markdown
+@Configuration 注解的本质：查看源码可知，它也是 @Component 注解的衍生注解
+因此我们可以用 <context:component-scan 进行扫描，但我们不会这么做，因为注解就是为了取代 xml。
+```
+
+
+
+## 2、@Bean
+
+1	作用：在 **配置 bean** 中进行使用，等同于 XML 配置文件中的 `<bean` 标签
+
+```java
+@Bean
+public User user(){
+	return new USer();
+}
+```
+
+等效于
+
+```xml
+<Bean id="user" class="...User"/>
+```
+
+如果**@Bean**不指定id，则默认id为方法名。可以通过 **@Bean(“id”)** 来指定 id。@Scope(“singleton|prototype”) 注解也可作用在@Bean的方法上。
+
+
+
+2	注入
+
+用户自定义类型
+
+```java
+@Bean
+public UserDao userDao(){
+    System.out.println("AppConfig2.userDao");
+    return new UserDaoImpl();
+}
+
+/*
+    通过参数赋值，会有个自动注入的过程
+ */
+@Bean
+public UserService userService(UserDao userDao){
+    return new UserServiceImpl(userDao);
+}
+
+/*
+    通过方法赋值，并没有再次调用方法
+ */
+@Bean
+public UserService userService(){
+    return new UserServiceImpl(userDao());
+}
+```
+
+基本类型，可以直接在代码中调用set方法，结合@value从外部配置文件中读取值注入
+
+```java
+@Value("${name}")
+private String name = null;
+
+@Value("${age}")
+private Integer age = 0;
+
+@Bean
+public User user(){
+    User user = new User();
+    user.setName(name);
+    user.setAge(age);
+    return user;
+}
+```
+
+```properties
+name = aizz
+age = 20
+```
+
+
+
+## 3、@ComponentScan
+
+1	作用：进行相关注解的扫描，整合到当前配置Bean中
+
+```java
+@Configuration
+@ComponentScan(basePackages = "com.aizhong.configrution")
+public class AppConfig{
+
+}
+```
+
+等效于
+
+```xml
+<context:component-scan base-package="com.aizhong.configrution"/>
+```
+
+
+
+2	排除策略 excludeFilters | 包含策略 includeFilters
+
+1.  特定的注解：type = FilterType.ANNOTATION, value={}
+2.  特定的类型：type = FilterType.ASSIGNABLE_TYPE , value={]
+3.  切入点表达式：type = FilterType.ASPECTJ, pattern=""
+4.  正则表达式：type = FilterType.REGEX, pattern=""
+5.  自定义策略：type = FilterType.CUSTOM, pattern=""
+
+```java
+@ComponentScan(basePackages = "com.yusael.scan",
+               excludeFilters = {
+                   @ComponentScan.Filter(type= FilterType.ANNOTATION, 
+                                         value={Service.class}),                 
+                   @ComponentScan.Filter(type= FilterType.ASPECTJ, 
+                                         pattern = "*..User1")
+               })
+```
+
+
+
+# Spring工厂创建对象的多种形式
+
+## 1、@Component及其衍生注解
+
+适用于自定义类型，如UserDao、UserService…
+
+
+
+## 2、@Bean
+
+在配置bean中使用，只用于别人开发的类型，如Connection、SqlSessionFactoryBean…
+
+
+
+## 3、配置文件
+
+在纯注解开发中不用。
+
+
+
+## 4、@Import
+
+Spring框架底层使用，以及多配制bean的整合
+
+
+
+## 5、优先级
+
+`@Component` 及其衍生注解 < `@Bean` < 配置文件`<bean>`标签
+
+高优先级的配置会覆盖低优先级的，但必须保持 id 一致。
+
+
+
+# 整合多个配置信息
+
+为什么会有多个配置信息？
+
+```markdown
+拆分多个配置 bean 的开发，是一种模块化开发的形式，也体现了面向对象各司其职的设计思想
+```
+
+多配置信息整合的方式
+
+```markdown
+1. 多个配置 Bean 的整合
+2. 配置 Bean 与 @Component 相关注解的整合
+3. 配置 Bean 与 SpringXML 配置文件的整
+```
+
+整合多种配置需要关注那些要点
+
+```markdown
+1. 如何使多配置的信息汇总成一个整体
+2. 如何实现跨配置的注入
+```
+
+
+
+## 1、多个配置Bean 的整合
+
+1	基于 `basePackegs` 包扫描的方式整合多个配置 Bean
+
+![image-20211022142650394](img/image-20211022142650394.png)
+
+```java
+ApplicationContext context = new AnnotationConfigApplicationContext("com.aizhong.configuration");
+```
+
+
+
+2	`@Import` 在一个配置 Bean 中引入另一个配置 Bean(@Configuration|@Component|…)
+
+![](img/import整合.png)
+
+
+
+3	在工厂创建时，指定多个配置 Bean 的 Class 对象
+
+```java
+ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig3.class, AppConfig2.class);
+```
+
+
+
+## 2、配置 Bean 与 @Component 相关注解的整合
+
+```java
+@Component(@Repository)
+public class UserDAOImpl implements UserDAO{
+}
+
+@Configuration
+@ComponentScan("")|@Import()
+public class AppConfig3 {
+   
+    @Autowired
+    private UserDAO userDAO;
+
+    @Bean
+    public UserService userService() {
+        UserServiceImpl userService = new UserServiceImpl();
+        userService.setUserDAO(userDAO);
+        return userService;
+    }
+}
+
+ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig3.class);
+```
+
+
+
+## 3、配置 Bean 与配置文件整合
+
+主要用于：整合遗留系统，配置覆盖
+
+```java
+@Configuration
+@ImportResource("applicationContext.xml")
+public class AppConfig{
+}
+```
+
+
+
+## 4、配置Bean的底层实现
+
+Spring 在配置 Bean 中加入了 `@Configuration` 注解后，底层就会通过 Cglib 的代理方式，来进行对象相关的配置、处理。
+
+![image-20211022144746226](img/image-20211022144746226.png)
+
+
+
+
+
+# 纯注解开发
+
+## 1、AOP开发
+
+1	开发步骤
+
+```markdown
+1. 原始方法
+	@Service
+	public class UserServiceImpl{}
+2. 创建切面类
+    @Aspect
+    @Component
+    public class MyAspect {
+        @Pointcut("execution(* *(..))")
+        public void myPointcut(){}
+
+        @Around(value = "myPointcut()")
+        public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+        System.out.println("---- aspect log ----");
+        Object ret = proceedingJoinPoint.proceed();
+        return ret;
+        }
+    }
+3. 让注解生效
+	配置文件 <aop:aspectj-autoproxy/>
+	配置Bean @EnableAspectJAutoProxy
+```
+
+2	细节
+
+```markdown
+1. @EnableAspectJAutoProxy(proxyTargetClass = true)切换代理方式
+2. SpringBoot已近设置好了@EnableAspectJAutoProxy
+3. Spring默认代理是 JDK，SpringBoot默认是 CGlib
+```
+
+
+
+## 2、Spring + MyBatis
+
+​	基础配置
+
+```markdown
+1. 连接池
+	<!--连接池,数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/mybatis?useSSL=false"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
+    </bean>
+    
+    替换成
+    @Bean
+    public DruidDataSource dataSource(){
+        DruidDataSource dataSource = new DruidDataSource();
+        dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/mybatis?useSSL=false");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
+        return dataSource;
+    }
+    
+2. SqlSessionFactoryBean
+	<!--创建SqlSessionFactory SqlSessionFactoryBean-->
+    <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 指定实体类所在的包 -->
+        <property name="typeAliasesPackage" value="com.aizhong.entity"/>
+        <!--指定配置文件（映射文件）的路径，还有通用配置-->
+        <property name="mapperLocations">
+            <list>
+                <value>classpath:com/aizhong/dao/*Mapper.xml</value>
+            </list>
+        </property>
+    </bean>
+    
+    替换成
+    
+    @Bean
+    public SqlSessionFactoryBean sqlSessionFactoryBean(){
+        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+        sqlSessionFactoryBean.setDataSource(dataSource());
+        sqlSessionFactoryBean.setTypeAliasesPackage("com.aizhong.myBatis");
+        sqlSessionFactoryBean.setMapperLocations(new ClassPathResource("UserDaoMapper.xml"));
+        return sqlSessionFactoryBean;
+    }
+    
+3. MapperScannerConfigure
+	<!--创建DAO对象 MapperScannerConfigure-->
+    <bean id="scanner" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBean"/>
+        <!--指定DAO接口放置的包-->
+        <property name="basePackage" value="com.aizhong.dao"/>
+    </bean>
+    
+    替换成
+    
+    @MapperScan(basePackages = "com.aizhong.myBatis")  
+```
+
+
+
+## 3、事务
+
+```markdown
+1. 原始对象 XXXService
+   <bean id="userService" class="com.baizhiedu.service.UserServiceImpl">
+     <property name="userDAO" ref="userDAO"/>
+   </bean>
+
+	替换成
+	
+   @Service
+   public class UserServiceImpl implements UserService{
+         @Autowired
+         private UserDAO userDAO;
+   }
+
+2. 额外功能
+   <!--DataSourceTransactionManager-->
+    <bean id="dataSourceTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+      <property name="dataSource" ref="dataSource"/>
+    </bean>
+    
+    替换成
+    
+    @Bean
+    public DataSourceTransactionManager dataSourceTransactionManager(DruidDataSource dataSource){
+        DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
+        dataSourceTransactionManager.setDataSource(dataSource);
+        return dataSourceTransactionManager;
+    }
+
+3. 事务属性
+    @Transactional
+    @Service
+    public class UserServiceImpl implements UserService {
+        @Autowired
+        private UserDAO userDAO;
+
+4. 基于Schema的事务配置 
+   <tx:annotation-driven transaction-manager="dataSourceTransactionManager"/>
+   
+   替换成
+   
+   @EnableTransactionManager ---> 配置Bean
+```
+
